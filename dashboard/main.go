@@ -5,11 +5,13 @@ import (
 	"github.com/rwirdemann/bffdashboard/bff"
 	"html/template"
 	"net/http"
+	"time"
 )
 
 type Result struct {
-	Name   string
-	Status int
+	Updated string
+	Name    string
+	Status  int
 }
 
 type IndexData struct {
@@ -29,7 +31,7 @@ func index(w http.ResponseWriter, r *http.Request) {
 	loginStatus, _ := bff.TestLogin()
 
 	data := IndexData{}
-	data.Results = append(data.Results, Result{"Marketplace Login", loginStatus})
+	data.Results = append(data.Results, Result{Updated: time.Now().Format("2006-01-02 15:04:05"), Name: "Marketplace Login", Status: loginStatus})
 	tmpl := template.Must(template.ParseFiles("index.html"))
 	tmpl.Execute(w, data)
 }
