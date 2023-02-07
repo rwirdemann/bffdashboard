@@ -11,7 +11,7 @@ import (
 type Result struct {
 	Updated string
 	Name    string
-	Status  int
+	Status  string
 }
 
 type IndexData struct {
@@ -28,10 +28,15 @@ func main() {
 }
 
 func index(w http.ResponseWriter, r *http.Request) {
-	loginStatus, _ := bff.TestLogin()
-
+	var checks []bff.HealthCheck
+	login := bff.LoginHealthCheck{}
+	checks = append(checks, login)
 	data := IndexData{}
-	data.Results = append(data.Results, Result{Updated: time.Now().Format("2006-01-02 15:04:05"), Name: "Marketplace Login", Status: loginStatus})
+	for _, check := range checks {
+		result := check.Run()
+		data.Results = append(data.Results, Result{Updated: time.Now().Format("2006-01-02 15:04:05"), Name: check.Description(), Status: result})
+	}
+
 	tmpl := template.Must(template.ParseFiles("index.html"))
 	tmpl.Execute(w, data)
 }

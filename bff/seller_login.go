@@ -7,15 +7,34 @@ import (
 	"net/http"
 )
 
-var client = http.Client{}
+type HealthCheck interface {
+	Run() string
+	Description() string
+}
 
-func TestLogin() (int, error) {
+type LoginHealthCheck struct {
+}
+
+func (l LoginHealthCheck) Run() string {
 	jwt, err := login()
 	if err != nil {
-		return -1, err
+		return "ERROR"
 	}
-	return getSeller(jwt, "1")
+	status, err := getSeller(jwt, "1")
+	if err != nil {
+		return "ERROR"
+	}
+	if status == http.StatusOK {
+		return "SUCCESS"
+	}
+	return "FAILED"
 }
+
+func (l LoginHealthCheck) Description() string {
+	return "login health check"
+}
+
+var client = http.Client{}
 
 func getSeller(jwt string, id string) (int, error) {
 	requestURL := fmt.Sprintf("http://localhost:%d/seller/%s", 8080, id)
