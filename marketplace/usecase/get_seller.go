@@ -4,7 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/golang-jwt/jwt"
-    "github.com/rwirdemann/bffdashboard/marketplace/domain"
+	"github.com/joho/godotenv"
+	"github.com/rwirdemann/bffdashboard/marketplace/domain"
 	"net/http"
 	"regexp"
 )
@@ -38,12 +39,18 @@ func extractJwtFromHeader(header http.Header) (jwt string) {
 }
 
 func isValidJWT(tokenString string) bool {
+	vars, err := godotenv.Read(".env")
+	if err != nil {
+		println("Failed to load .env file")
+		return false
+	}
+
 	token, _ := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
-
-		return sampleSecretKey2, nil
+		secretKey := vars["SECRET_KEY"]
+		return []byte(secretKey), nil
 	})
 
 	if _, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
